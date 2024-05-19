@@ -20,7 +20,7 @@ public class TfIdfCalculator {
         // getTotalNumUrls(); 
         // getKeywordUrlCounts();
         // computeTfIdfVectors();
-        // System.out.println("Tf-Idf vectors computed successfully.");
+        //System.out.println("Tf-Idf vectors computed successfully.");
     }
 
 
