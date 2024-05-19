@@ -8,7 +8,6 @@
 package com.java;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -31,16 +30,11 @@ public class Lemmatizer {
      * @param word the word to be lemmatized
      * @return the lemmatized version of the word
      */
-    public String[] lemmatizeWords(String[] words) {
-        String[] lemWords = new String[words.length];
-        for (int i = 0; i < words.length; i++) {
-            if (this.lemmas.containsKey(words[i])) {
-                lemWords[i] = lemmas.get(words[i]);
-            } else {
-                lemWords[i] = words[i];
-            }
+    public String lemmatizeWord(String word) {
+        if (this.lemmas.containsKey(word)) {
+            return this.lemmas.get(word);
         }
-        return lemWords;
+        return word;
     }
 
     

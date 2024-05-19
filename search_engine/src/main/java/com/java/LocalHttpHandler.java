@@ -21,7 +21,7 @@ public class LocalHttpHandler implements Runnable {
 
     @Override
     public void run() {
-        TfIdfGenerator gen = new TfIdfGenerator(new Lemmatizer());
+       SearchEngine engine = new SearchEngine();
 
         try (
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -69,10 +69,10 @@ public class LocalHttpHandler implements Runnable {
 
                 if (query != null) {
                     Long t0 = System.currentTimeMillis();
-                    List<String> results = gen.search(query);
+                    List<String> results = engine.search(query);
                     Long t1 = System.currentTimeMillis();
                     Long time = t1-t0;
-                    
+
                     out.write("<p id='time-stats'>"+results.size()+" results in " + time + " ms</p>");
                     out.write("<ul>");
                     for (String url : results) {
