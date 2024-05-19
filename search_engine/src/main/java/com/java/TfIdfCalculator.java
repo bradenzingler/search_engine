@@ -3,16 +3,18 @@ package com.java;
 import java.sql.*;
 import java.util.*;
 
+
 public class TfIdfCalculator {
-    private Connection conn = null;
+    public Database db;
     private Integer totalNumUrls;
     private Map<String, Integer> keywordUrlCounts;
+
 
     /**
      * Constructor for the TfIdfCalculator class.
      */
     public TfIdfCalculator() {
-        connectToDatabase();
+        this.db = new Database();
 
         // these methods only need to run once to generate the Tf-Idf vectors
         // getTotalNumUrls(); 
@@ -21,44 +23,26 @@ public class TfIdfCalculator {
         // System.out.println("Tf-Idf vectors computed successfully.");
     }
 
-    /**
-     * Connect to the SQLite database.
-     */
-    private void connectToDatabase() {
-        try {
-            this.conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Braden Zingler/Desktop/Summer projects/web_crawler/data.db");
-        } catch (SQLException e) {
-            System.out.println("Failed to connect to database: " + e.getMessage());
-        }
-    }
 
     /**
      * Compute the Tf-Idf vectors for each URL in the database.
-     * @throws SQLException
      */
     public void computeTfIdfVectors() {
-        Statement stmt = null;
-        ResultSet rs = null;
-        PreparedStatement updateStmt = null;
-
-        try {
-            stmt = conn.createStatement();
-            conn.setAutoCommit(false);
-            String query = "SELECT u.url_id, k.keyword, uk.num_occurences, u.num_keywords, u.title, uk.keyword_id " +
+        String query = "SELECT u.url_id, k.keyword, uk.num_occurences, u.num_keywords, u.title, uk.keyword_id " +
                     "FROM urls u " +
                     "JOIN url_keywords uk ON u.url_id = uk.url_id " +
                     "JOIN keywords k ON uk.keyword_id = k.keyword_id";
-            rs = stmt.executeQuery(query);
+        ResultSet rs = db.runQuery(query);
+        String updateQuery = "UPDATE url_keywords SET tfidf_value = ? WHERE url_id = ? AND keyword_id = ?";
+        PreparedStatement updateStmt = db.prepareQuery(updateQuery);
 
-            String updateQuery = "UPDATE url_keywords SET tfidf_value = ? WHERE url_id = ? AND keyword_id = ?";
-            updateStmt = conn.prepareStatement(updateQuery);
-
-            // iterate over each keyword
+        try{
             while (rs.next()) {
                 int totalNumKeywords = rs.getInt("num_keywords");
                 String keyword = rs.getString("keyword");
                 String title = rs.getString("title");
                 int numOccurrences = rs.getInt("num_occurences");
+                
                 if (title.contains(keyword)) {
                     numOccurrences += 50; // give higher priority to keywords in the title
                 }
@@ -67,33 +51,16 @@ public class TfIdfCalculator {
                 double idf = Math.log((double) this.totalNumUrls / numUrlsWithKeyword);
                 double tfIdf = tf * idf;
 
-                updateStmt.setDouble(1, tfIdf);
-                updateStmt.setInt(2, rs.getInt("url_id"));
-                updateStmt.setInt(3, rs.getInt("keyword_id"));
-                updateStmt.executeUpdate();
-            }
-
-            conn.commit();
+                int urlId = rs.getInt("url_id");
+                int keywordId = rs.getInt("keyword_id");
+                db.runPreparedQuery(updateStmt, tfIdf, urlId, keywordId);
+            } 
         } catch (SQLException e) {
-            e.printStackTrace();
-            try {
-                if (conn != null) {
-                    conn.rollback();  // Rollback the transaction on error
-                }
-            } catch (SQLException ex) {
-                System.out.println("Error while rolling back transaction: " + ex.getMessage());
-            }
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (updateStmt != null) updateStmt.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            System.out.println("Error while computing Tf-Idf vectors: " + e.getMessage());
         }
     }
 
+    // TODO this should be precomputed
     /**
      * Get the number of URLs that contain each keyword.
      * @return A map of keywords to the number of URLs that contain them
@@ -104,8 +71,9 @@ public class TfIdfCalculator {
                 "FROM keywords k " +
                 "JOIN url_keywords uk ON k.keyword_id = uk.keyword_id " +
                 "GROUP BY k.keyword";
+        ResultSet rs = db.runQuery(query);
 
-        try (Statement stmt = this.conn.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
+        try {
             while (rs.next()) {
                 String keyword = rs.getString("keyword");
                 int urlCount = rs.getInt("url_count");
@@ -117,17 +85,20 @@ public class TfIdfCalculator {
         return keywordUrlCounts;
     }
 
+    // TODO this is a bad method, too slow
     /**
      * Get the total number of URLs in the database.
      * @return The total number of URLs
      */
     private void getTotalNumUrls() {
-        try (Statement stmt = this.conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM urls")) {
+        ResultSet rs = db.runQuery("SELECT COUNT(*) FROM urls");
+        try {
             this.totalNumUrls = rs.getInt(1);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
 
     /**
      * Get the keyword ids for a list of keywords.
@@ -139,7 +110,9 @@ public class TfIdfCalculator {
 
         for (String keyword : keywords) {
             String query = "SELECT keyword_id FROM keywords WHERE keyword = ?";
-            try (PreparedStatement stmt = this.conn.prepareStatement(query)) {
+            PreparedStatement stmt = db.prepareQuery(query);
+            
+            try {
                 stmt.setString(1, keyword);
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
@@ -151,6 +124,7 @@ public class TfIdfCalculator {
         }
         return ids;
     }
+
 
     /**
      * Get the inverse document frequency of a word.
@@ -164,6 +138,7 @@ public class TfIdfCalculator {
         }
         return 0.0;
     }
+
 
     /**
      * Compute the relevant URLs for a given query.
@@ -179,8 +154,9 @@ public class TfIdfCalculator {
                 "WHERE uk.keyword_id IN (" + String.join(",", Collections.nCopies(keywordIds.size(), "?")) + ") " +
                 "GROUP BY u.url " +
                 "ORDER BY relevance_score DESC";
+        PreparedStatement pstmt = db.prepareQuery(sql);
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try {
             int index = 1;
             for (int keywordId : keywordIds) {
                 pstmt.setInt(index++, keywordId);
@@ -197,18 +173,5 @@ public class TfIdfCalculator {
             e.printStackTrace();
         }
         return results;
-    }
-
-    /**
-     * Close the database connection.
-     */
-    public void closeConnection() {
-        try {
-            if (this.conn != null) {
-                this.conn.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }

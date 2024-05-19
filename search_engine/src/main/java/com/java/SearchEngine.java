@@ -21,7 +21,7 @@ public class SearchEngine {
         List<String> filteredQueryWords = q.cleanAndFilterQuery();
         Set<Integer> keywordIds = calculator.getKeywordIds(filteredQueryWords);
         List<List<String>> results = calculator.computeRelevantUrls(keywordIds);
-        calculator.closeConnection(); // close the database connection
+        calculator.db.closeConnection();
         return results;
     }
 }
