@@ -33,6 +33,11 @@ button {
     color: white;
 }
 
+h3 {
+    margin: 0;
+    font-size: 0.8vw;
+}
+
 button:hover {
     transform: scale(1.05);
 }
@@ -42,6 +47,7 @@ ul {
 }
 
 li {
+    font-size: 1.2vw;
     margin: 1vw;
     text-align: left;
 }
@@ -49,4 +55,8 @@ li {
 p {
     margin: 0.1vw;
     color: rgb(180, 180, 180);
+}
+
+a {
+    color: rgb(0, 0, 161);
 }

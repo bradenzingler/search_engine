@@ -4,6 +4,7 @@ import java.net.*;
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -68,16 +69,24 @@ public class LocalHttpHandler implements Runnable {
                 out.write(htmlOutput);
 
                 if (query != null) {
+                    System.out.println("Searching for: " + query);
                     Long t0 = System.currentTimeMillis();
-                    List<String> results = engine.search(query);
+                    List<List<String>> results = engine.search(query);
                     Long t1 = System.currentTimeMillis();
                     Long time = t1-t0;
 
                     out.write("<p id='time-stats'>"+results.size()+" results in " + time + " ms</p>");
                     out.write("<ul>");
-                    for (String url : results) {
-                        out.write("<li>"+url+"</li>");
+                    for (List<String> result : results) {
+                        String url = result.get(0);
+                        String title = result.get(1);
+                        out.write("<li>"+"<p><a href=\"" + url + "\">" + title + "</a></p>" + "</li>");
                     }
+                    // for (Map<String, String[]> metadata : results) {
+                    //     out.write("<li>"+"<p><a href=\"" + metadata.get("url") + "\">" 
+                    //     + metadata.get("title") + "</a></p>" + "<br><p>" 
+                    //     + metadata.get("description") + "</p></li>");
+                    // }
                     out.write("</ul>");
                 }
 

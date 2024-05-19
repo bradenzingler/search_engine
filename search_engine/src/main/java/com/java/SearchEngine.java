@@ -1,45 +1,27 @@
 package com.java;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SearchEngine {
     private Lemmatizer lem;
 
     public SearchEngine() {
+        long t0 = System.currentTimeMillis();
         this.lem = new Lemmatizer();
+        long t1 = System.currentTimeMillis();
+        System.out.println("Time to initialize Lemmatizer: " + (t1 - t0) + " ms");
     }
 
-
-     public List<String> search(String query) {
+    public List<List<String>> search(String query) {
+        long t0 = System.currentTimeMillis();
         TfIdfCalculator calculator = new TfIdfCalculator();
+        long t1 = System.currentTimeMillis();
+        System.out.println("Time to initialize TfIdfCalculator: " + (t1 - t0) + " ms");
         Query q = new Query(query, this.lem);
         List<String> filteredQueryWords = q.cleanAndFilterQuery();
-        for (String word : filteredQueryWords) {
-            System.out.println(word);
-        }
-        HashMap<String, Double> queryTfVector = q.getTfVector(filteredQueryWords);
-        HashMap<String, Double> queryTfIdfVector = new HashMap<>();
-        
-        // convert to tf * idf vector
-        for (String term : queryTfVector.keySet()) {
-            Double tf = queryTfVector.get(term);
-            Double idf = calculator.getIDF(term);
-            queryTfIdfVector.put(term, idf * tf);
-        }
-        
         Set<Integer> keywordIds = calculator.getKeywordIds(filteredQueryWords);
-        List<String> results = calculator.computeRelevantUrls(queryTfIdfVector, keywordIds);
-
-       
+        List<List<String>> results = calculator.computeRelevantUrls(keywordIds);
+        calculator.closeConnection(); // close the database connection
         return results;
     }
-    
 }
