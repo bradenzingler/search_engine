@@ -8,25 +8,37 @@
 package com.java;
 
 import java.io.*;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Scanner;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 
 public class Lemmatizer {
     public HashMap<String, String> lemmas;
-    public HashMap<String, ArrayList<String>> synonsMap;
+    private Connection conn;
+
 
     /**
      * Constructor for the Lemmatizer class.
      * Initializes the lemmas HashMap and reads the lemmatization list from a CSV file.
      */
     public Lemmatizer() {
-        this.lemmas = new HashMap<>();
-        this.synonsMap = new HashMap<>();
-        readLemmaList();
+        try {
+            this.conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Braden Zingler/Desktop/Summer projects/web_crawler/tokenization.db");
+            System.out.println("Connection to lemmas db has been established.");
+            // We only need to run this once to read the lemmatization list into the database
+            // long t0 = System.currentTimeMillis();
+            // readLemmaList();
+            // long t1 = System.currentTimeMillis();
+            // System.out.println("Time to read lemmatization list into table: " + (t1 - t0) + " ms");
+        } catch (Exception e) { 
+            System.out.println("An exception occurred: " + e);
+        }
     }
 
 
@@ -36,30 +48,59 @@ public class Lemmatizer {
      * @return the lemmatized version of the word
      */
     public String lemmatizeWord(String word) {
-        if (this.lemmas.containsKey(word)) {
-            return this.lemmas.get(word);
+        String selectWord = "SELECT val FROM lemmas WHERE key = ?";
+        try {
+            PreparedStatement pstm = conn.prepareStatement(selectWord);
+            pstm.setString(1, word);
+            ResultSet rs = pstm.executeQuery();
+            if (rs.next()) {
+                return rs.getString("val");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return word;
     }
 
     
     /**
-     * Reads the lemmatizations_list.csv file into a HashMap before starting the web scraping.
-     * This allows for constant time lookups and lemmatization on each keyword.
+     * Reads the lemmatizations_list.csv file into a SQLite table when data is updated.
+     * This allows for constant time lookups and lemmatization of each keyword.
      */
     public void readLemmaList() {
-        try {
-            File f = new File("search_engine/src/main/resources/lemmatization_list.csv");
-            Scanner scnr = new Scanner(f);
-            while (scnr.hasNextLine()) { 
-                String line = scnr.nextLine();
-                String[] parts = line.split(",");
-                this.lemmas.put(parts[1].strip(), parts[0].strip());
+        String addUrl = "INSERT OR IGNORE INTO lemmas (key, val) VALUES (?, ?)";
+        try (PreparedStatement pstm = conn.prepareStatement(addUrl)){
+            conn.setAutoCommit(false);
+            File f = new File("crawler/src/main/resources/lemmatization_list.csv");
+            try (Scanner scnr = new Scanner(f)) {
+                while (scnr.hasNextLine()) { 
+                    String line = scnr.nextLine();
+                    String[] parts = line.split(",");
+                    String key = parts[1].strip();
+                    String val = parts[0].strip();
+    
+                    // insert into database
+                    pstm.setString(1, key);
+                    pstm.setString(2, val);
+                    pstm.addBatch();
             }
-            scnr.close();
-            System.out.println("Lemmas read into hashmap successfully.");
-        } catch (Exception e) { 
+            pstm.executeBatch();
+            conn.commit();  
+            System.out.println("Lemmas read into database successfully.");
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    } catch (SQLException e) {
+        try {
+            if (conn != null) {
+                conn.rollback();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        e.printStackTrace();
+    } 
     }
+
+
 }

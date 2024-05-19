@@ -13,16 +13,18 @@ public class LocalHttpHandler implements Runnable {
     private final Socket clientSocket;
     private final File htmlFile;
     private final File cssFile;
+    private final SearchEngine engine;
 
     public LocalHttpHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
+        this.engine = new SearchEngine();
+
         this.htmlFile = new File("search_engine/src/main/resources/index.html");
         this.cssFile = new File("search_engine/src/main/resources/style.css");
     }
 
     @Override
     public void run() {
-       SearchEngine engine = new SearchEngine();
 
         try (
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -71,7 +73,7 @@ public class LocalHttpHandler implements Runnable {
                 if (query != null) {
                     System.out.println("Searching for: " + query);
                     Long t0 = System.currentTimeMillis();
-                    List<List<String>> results = engine.search(query);
+                    List<List<String>> results = this.engine.search(query);
                     Long t1 = System.currentTimeMillis();
                     Long time = t1-t0;
 
