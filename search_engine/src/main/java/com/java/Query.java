@@ -43,7 +43,14 @@ public class Query {
             for (String word : words) {
                 if (!isStopword(word)) {
                     String newWord = this.lem.lemmatizeWord(word.toLowerCase());
-                    filteredKeywords.add(newWord);
+                    List<String> synonyms = this.lem.synonsMap.get(newWord);
+                    for (String syn : synonyms) {
+                        System.out.println(syn);
+                    }
+                       
+                    if (synonyms != null) {
+                        filteredKeywords.addAll(synonyms);
+                    }
                 }
             }
             return filteredKeywords;

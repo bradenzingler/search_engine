@@ -15,9 +15,10 @@ public class TfIdfCalculator {
         connectToDatabase();
 
         // these methods only need to run once to generate the Tf-Idf vectors
-        //getTotalNumUrls(); 
-        //getKeywordUrlCounts();
-        //computeTfIdfVectors();
+        // getTotalNumUrls(); 
+        // getKeywordUrlCounts();
+        // computeTfIdfVectors();
+        // System.out.println("Tf-Idf vectors computed successfully.");
     }
 
     /**
@@ -43,7 +44,7 @@ public class TfIdfCalculator {
         try {
             stmt = conn.createStatement();
             conn.setAutoCommit(false);
-            String query = "SELECT u.url_id, k.keyword, uk.num_occurences, u.num_keywords, uk.keyword_id " +
+            String query = "SELECT u.url_id, k.keyword, uk.num_occurences, u.num_keywords, u.title, uk.keyword_id " +
                     "FROM urls u " +
                     "JOIN url_keywords uk ON u.url_id = uk.url_id " +
                     "JOIN keywords k ON uk.keyword_id = k.keyword_id";
@@ -56,7 +57,11 @@ public class TfIdfCalculator {
             while (rs.next()) {
                 int totalNumKeywords = rs.getInt("num_keywords");
                 String keyword = rs.getString("keyword");
+                String title = rs.getString("title");
                 int numOccurrences = rs.getInt("num_occurences");
+                if (title.contains(keyword)) {
+                    numOccurrences += 50; // give higher priority to keywords in the title
+                }
                 int numUrlsWithKeyword = this.keywordUrlCounts.get(keyword);
                 double tf = (double) numOccurrences / totalNumKeywords;
                 double idf = Math.log((double) this.totalNumUrls / numUrlsWithKeyword);
