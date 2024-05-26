@@ -2,11 +2,8 @@ package com.java;
 
 import java.net.*;
 import java.io.*;
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 public class LocalHttpHandler implements Runnable {
 
@@ -82,13 +79,9 @@ public class LocalHttpHandler implements Runnable {
                     for (List<String> result : results) {
                         String url = result.get(0);
                         String title = result.get(1);
-                        out.write("<li>"+"<p><a href=\"" + url + "\">" + title + "</a></p>" + "</li>");
+                        String description = result.get(2);
+                        out.write("<li>"+"<p><a href=\"" + url + "\">" + title + "</a></p><br> <p>" + description + "</p></li>");
                     }
-                    // for (Map<String, String[]> metadata : results) {
-                    //     out.write("<li>"+"<p><a href=\"" + metadata.get("url") + "\">" 
-                    //     + metadata.get("title") + "</a></p>" + "<br><p>" 
-                    //     + metadata.get("description") + "</p></li>");
-                    // }
                     out.write("</ul>");
                 }
 

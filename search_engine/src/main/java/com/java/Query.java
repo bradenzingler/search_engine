@@ -9,6 +9,7 @@ import java.util.List;
 public class Query {
     private String rawText;
     private Lemmatizer lem;
+    private List<String> queryKeywords;
 
 
     /**
@@ -19,6 +20,12 @@ public class Query {
     public Query(String rawText, Lemmatizer lem) {
         this.rawText = rawText;
         this.lem = lem;
+        this.queryKeywords = this.cleanAndFilterQuery();
+    }
+
+    
+    public List<String> getQueryKeywords() {
+        return this.queryKeywords;
     }
 
 

@@ -16,7 +16,7 @@ public class Database {
 
     private void connectToDatabase() {
         try {
-            this.conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Braden Zingler/Desktop/Summer projects/web_crawler/data.db");
+            this.conn = DriverManager.getConnection("jdbc:sqlite:data.db");
         } catch (SQLException e) {
             System.out.println("Failed to connect to database: " + e.getMessage());
         }
@@ -33,17 +33,9 @@ public class Database {
         } catch (SQLException e) {
             System.out.println("Failed to run query: " + e.getMessage());
             try {
-                if (conn != null) {
-                    conn.rollback();  // Rollback the transaction on error
-                }
+                conn.rollback();
             } catch (SQLException ex) {
                 System.out.println("Error while rolling back transaction: " + ex.getMessage());
-            }
-        } finally {
-            try {
-                if (stmt != null) stmt.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
         }
         return rs;
