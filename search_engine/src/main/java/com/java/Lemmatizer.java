@@ -29,13 +29,10 @@ public class Lemmatizer {
      */
     public Lemmatizer() {
         try {
-            this.conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Braden Zingler/Desktop/Summer projects/web_crawler/tokenization.db");
+            this.conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Braden Zingler/Desktop/Summer projects/search_engine/lemmas.db");
             System.out.println("Connection to lemmas db has been established.");
             // We only need to run this once to read the lemmatization list into the database
-            // long t0 = System.currentTimeMillis();
             // readLemmaList();
-            // long t1 = System.currentTimeMillis();
-            // System.out.println("Time to read lemmatization list into table: " + (t1 - t0) + " ms");
         } catch (Exception e) { 
             System.out.println("An exception occurred: " + e);
         }

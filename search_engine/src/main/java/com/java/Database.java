@@ -2,8 +2,6 @@ package com.java;
 
 import java.sql.*;
 
-import javax.naming.spi.DirStateFactory.Result;
-
 
 public class Database {
     private Connection conn;
@@ -16,7 +14,7 @@ public class Database {
 
     private void connectToDatabase() {
         try {
-            this.conn = DriverManager.getConnection("jdbc:sqlite:data.db");
+            this.conn = DriverManager.getConnection("jdbc:sqlite:data_with_map copy.db");
         } catch (SQLException e) {
             System.out.println("Failed to connect to database: " + e.getMessage());
         }

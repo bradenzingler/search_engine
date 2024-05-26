@@ -24,6 +24,10 @@ public class Query {
     }
 
     
+    /**
+     * Getter method for the query keywords.
+     * @return the list of query keywords.
+     */
     public List<String> getQueryKeywords() {
         return this.queryKeywords;
     }

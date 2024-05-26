@@ -6,70 +6,78 @@ import java.util.*;
 
 public class TfIdfCalculator {
     public Database db;
-    private Integer totalNumUrls;
 
-
+    
     /**
      * Constructor for the TfIdfCalculator class.
      */
     public TfIdfCalculator() {
         this.db = new Database();
-        getTotalNumUrls();
     }
 
 
     /**
-     * Get the number of URLs that contain a keyword.
-     * @return The number of URLs for a keyword
+     * Gets the keyword ID associated with a keyword.
+     * @return in the keyword id.
      */
-    private Integer getNumberDocuments(String query) {
-        PreparedStatement stmt = db.prepareQuery(Statements.GET_KEYWORD_URL_COUNTS);
+    private int getKeywordId(String keyword) {
+        PreparedStatement stmt = db.prepareQuery(Statements.GET_KEYWORD_ID);
+
         try {
-            stmt.setString(1, query);
+            stmt.setString(1, keyword);
             ResultSet rs = stmt.executeQuery();
-            return rs.getInt(1);
+
+            while (rs.next()) {
+                return rs.getInt(1);
+            }
+
+            return -1;
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
-        return 0;
     }
 
-
+    
     /**
-     * Get the total number of URLs in the database.
-     * @return The total number of URLs
+     * Calculates the relevant documents to return to the user.
      */
-    private void getTotalNumUrls() {
-        ResultSet rs = db.runQuery("SELECT COUNT(*) FROM url_keywords");
-        try {
-            this.totalNumUrls = rs.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     public List<List<String>> getRelevantDocuments(List<String> queryKeywords) {
         List<List<String>> relevantDocuments = new ArrayList<>();
+        Map<String, Double> documentScores = new HashMap<>();
 
         for (String keyword : queryKeywords) {
+
+            int keyword_id = getKeywordId(keyword);
+            if (keyword_id == -1) continue;
+
             PreparedStatement stmt = db.prepareQuery(Statements.GET_DOCUMENTS_FOR_KEYWORD);
+
             try {
-                stmt.setString(1, keyword);
+                stmt.setInt(1, keyword_id);
                 ResultSet rs = stmt.executeQuery();
 
                 while (rs.next()) {
-                    Double tfidf = rs.getDouble(1);
-                    String url = rs.getString(2);
-                    String title = rs.getString(3);
-                    String description = rs.getString(4);
+                    Double tfidf = rs.getDouble("tfidf");
+                    String url = rs.getString("url");
+                    String title = rs.getString("title");
+                    String description = rs.getString("description");
                     List<String> document = Arrays.asList(url, title, description);
+                    documentScores.put(url, documentScores.getOrDefault(url, 0.0) + tfidf);
                     relevantDocuments.add(document);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
+
+        // Sort the documents by their tfidf scores
+        relevantDocuments.sort((a, b) -> {
+            String urlA = a.get(0);
+            String urlB = b.get(0);
+            return Double.compare(documentScores.get(urlB), documentScores.get(urlA));
+        });
+
         return relevantDocuments;
     }
 }
