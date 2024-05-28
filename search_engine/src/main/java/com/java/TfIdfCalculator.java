@@ -41,16 +41,17 @@ public class TfIdfCalculator {
     
     /**
      * Calculates the relevant documents to return to the user.
+     * @param queryKeywords the keywords to search for.
+     * @return a list of relevant documents.
      */
     public List<List<String>> getRelevantDocuments(List<String> queryKeywords) {
         List<List<String>> relevantDocuments = new ArrayList<>();
+        List<String> descriptions = new ArrayList<>();
         Map<String, Double> documentScores = new HashMap<>();
 
         for (String keyword : queryKeywords) {
-
             int keyword_id = getKeywordId(keyword);
             if (keyword_id == -1) continue;
-
             PreparedStatement stmt = db.prepareQuery(Statements.GET_DOCUMENTS_FOR_KEYWORD);
 
             try {
@@ -58,10 +59,17 @@ public class TfIdfCalculator {
                 ResultSet rs = stmt.executeQuery();
 
                 while (rs.next()) {
+                    // Track duplicates with different id urls, skip if the same
+                    String description = rs.getString("description");
+                    if (descriptions.contains(description)) continue;
+                    descriptions.add(description);
+
+                    // get rest of document information
                     Double tfidf = rs.getDouble("tfidf");
                     String url = rs.getString("url");
                     String title = rs.getString("title");
-                    String description = rs.getString("description");
+                    
+                    // store resulting documents
                     List<String> document = Arrays.asList(url, title, description);
                     documentScores.put(url, documentScores.getOrDefault(url, 0.0) + tfidf);
                     relevantDocuments.add(document);
@@ -77,9 +85,7 @@ public class TfIdfCalculator {
             String urlB = b.get(0);
             return Double.compare(documentScores.get(urlB), documentScores.get(urlA));
         });
-
-        // Remove duplicate documents
-
+        
         return relevantDocuments;
     }
 }
