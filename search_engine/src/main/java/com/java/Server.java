@@ -7,10 +7,12 @@
  */
 
 package com.java;
-
 import java.io.*;
 import java.net.*;
 
+/**
+ * The server class for the search engine.
+ */
 public class Server {
 
     public static void main(String[] args) {
@@ -18,12 +20,14 @@ public class Server {
     
         try (ServerSocket socket = new ServerSocket(port)) {
             System.out.println("Server started on port " + port);
+
             while (true) {
                 Socket clientSocket = socket.accept();
                 System.out.println("Client connected from " + clientSocket.getInetAddress());
                 Thread thread = new Thread(new LocalHttpHandler(clientSocket));
                 thread.start();
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

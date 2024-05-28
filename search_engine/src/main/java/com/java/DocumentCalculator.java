@@ -1,23 +1,33 @@
-package com.java;
+/**
+ * DocumentCalculator.java
+ * This class is responsible for querying the database and returning the relevant documents based on
+ * the precomputed TF-IDF values.
+ * Braden Zingler
+ * 5/28/2024
+ */
 
+
+package com.java;
 import java.sql.*;
 import java.util.*;
 
 
-public class TfIdfCalculator {
-    public Database db;
+public class DocumentCalculator {
+
+    public Database db;         // The database object used to query the database
 
     
     /**
      * Constructor for the TfIdfCalculator class.
      */
-    public TfIdfCalculator() {
+    public DocumentCalculator() {
         this.db = new Database();
     }
 
 
     /**
      * Gets the keyword ID associated with a keyword.
+     * @param keyword The keyword to search for
      * @return in the keyword id.
      */
     private int getKeywordId(String keyword) {
@@ -26,11 +36,9 @@ public class TfIdfCalculator {
         try {
             stmt.setString(1, keyword);
             ResultSet rs = stmt.executeQuery();
-
             while (rs.next()) {
                 return rs.getInt(1);
             }
-
             return -1;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -45,10 +53,12 @@ public class TfIdfCalculator {
      * @return a list of relevant documents.
      */
     public List<List<String>> getRelevantDocuments(List<String> queryKeywords) {
-        List<List<String>> relevantDocuments = new ArrayList<>();
-        List<String> descriptions = new ArrayList<>();
-        Map<String, Double> documentScores = new HashMap<>();
 
+        List<List<String>> relevantDocuments = new ArrayList<>();       // The list of relevant documents
+        List<String> descriptions = new ArrayList<>();                  // The list of descriptions to track duplicates
+        Map<String, Double> documentScores = new HashMap<>();           // The map of document scores for sorting
+
+        // Find relevant documents for each keyword in the query
         for (String keyword : queryKeywords) {
             int keyword_id = getKeywordId(keyword);
             if (keyword_id == -1) continue;
