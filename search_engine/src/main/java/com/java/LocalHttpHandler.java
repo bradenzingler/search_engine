@@ -80,7 +80,7 @@ public class LocalHttpHandler implements Runnable {
                         String url = result.get(0);
                         String title = result.get(1);
                         String description = result.get(2);
-                        out.write("<li>"+"<p><a href=\"" + url + "\">" + title + "</a></p><br> <p>" + description + "</p></li>");
+                        out.write("<li>"+"<p><a href=\"" + url + "\">" + title + "</a></p><p>" + description + "</p></li>");
                     }
                     out.write("</ul>");
                 }

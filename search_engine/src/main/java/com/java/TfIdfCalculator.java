@@ -61,7 +61,11 @@ public class TfIdfCalculator {
                 while (rs.next()) {
                     // Track duplicates with different id urls, skip if the same
                     String description = rs.getString("description");
+                    if (description.length() > 100) {
+                        description = description.substring(0, 100) + "...";
+                    }
                     if (descriptions.contains(description)) continue;
+
                     descriptions.add(description);
 
                     // get rest of document information
@@ -80,12 +84,15 @@ public class TfIdfCalculator {
         }
 
         // Sort the documents by their tfidf scores
+        long t0 = System.currentTimeMillis();
         relevantDocuments.sort((a, b) -> {
             String urlA = a.get(0);
             String urlB = b.get(0);
             return Double.compare(documentScores.get(urlB), documentScores.get(urlA));
         });
-        
+        long t1 = System.currentTimeMillis();
+        System.out.println("Sorting took " + (t1 - t0) + " ms");
+
         return relevantDocuments;
     }
 }
