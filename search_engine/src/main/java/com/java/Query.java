@@ -57,6 +57,7 @@ public class Query {
                     filteredKeywords.add(newWord);
                 }
             }
+            System.out.println("Filtered keywords: " + filteredKeywords.toString());
             return filteredKeywords;
         } catch (Exception e) {
             System.out.println("Error while filtering keywords: " + e);

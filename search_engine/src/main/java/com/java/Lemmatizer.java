@@ -15,7 +15,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 
 public class Lemmatizer {
@@ -29,7 +28,7 @@ public class Lemmatizer {
      */
     public Lemmatizer() {
         try {
-            this.conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Braden Zingler/Desktop/Summer projects/search_engine/lemmas.db");
+            this.conn = DriverManager.getConnection("jdbc:sqlite:lemmas.db");
             System.out.println("Connection to lemmas db has been established.");
             // We only need to run this once to read the lemmatization list into the database
             // readLemmaList();

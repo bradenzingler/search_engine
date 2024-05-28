@@ -78,6 +78,8 @@ public class TfIdfCalculator {
             return Double.compare(documentScores.get(urlB), documentScores.get(urlA));
         });
 
+        // Remove duplicate documents
+
         return relevantDocuments;
     }
 }
