@@ -1,0 +1,52 @@
+<html lang="en">
+    <head>
+        <title>Wikipedia Search Engine</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <script src="script.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <button id="dark-mode-toggle">Dark Mode</button>
+        <h1><a href="https://bradenzingler.github.io/">bradenzingler</a>/search_engine</h1>
+        <div class="body-content">
+           <h2>Overview</h2>
+           <p> This is a search engine I built to search through Wikipedia articles quickly. I built this to see if I could
+            get faster results than Google, and to learn more about the algorithm behind search engines. 
+            The search engine uses the <a href="https://en.wikipedia.org/wiki/Tf%E2%80%93idf">TF-IDF</a> algorithm to categorize articles by keyword relevance.
+            It currently runs only on local host. The db files required to run this are available <a href="https://www.dropbox.com/scl/fo/3sc2hnoww7h479oflbfeg/ANcIvqx4-THThpkwwQUmBRw?rlkey=62ky9oh7qcinyf3xz6v46ig1u&st=tejf488o&dl=0">here</a>.
+            The files are ~200Mb, so I have not included them in this repository. This project took me around 1 month to complete.
+           </p>
+           <h2>How it works</h2>
+           <p>When a user enters a query, their query is parsed for important keywords. With these keywords, we use an inverted index
+            to find documents associated with those keywords, along with their TF-IDF scores. The documents are then ranked by their TF-IDF scores, and the top 100 are returned to the user.
+            The user can then click on the link to view the article. The search engine is currently only able to search through Wikipedia articles, because 
+            I thought it would be a bit more doable. 
+           </p>
+           <ul>
+                <li><b>Server.java: </b> The entrypoint of the program. This class initializes local host server to run the search engine on port 8080.</li> 
+                <li><b>LocalHttpHandler.java: </b> This class is responsible for handling each connection to the local server. It returns the HTML page, and handles queries 
+                to the search engine.</li>
+                <li><b>SearchEngine.java: </b> The main driver behind the search engine. This class handles the higher level parts of a search,
+                from lemmatizing user queries to searching for relevant files.</li>
+                <li><b>Database.java: </b> This class is used to handle connections to the SQLite database. It controls searching through the database for 
+                relevant documents.</li>
+                <li><b>DocumentCalculator.java: </b> This class calculates relevant documents based on the user query and returns the top 100, to reduce latency.</li>
+                <li><b>Lemmatizer.java: </b> This class is responsible for <a href="https://en.wikipedia.org/wiki/Lemmatization">lemmatizing</a> each keyword.
+                The lemmatizer currently just reads a <a href="https://github.com/michmech/lemmatization-lists/blob/master/lemmatization-en.txt">list</a> 
+                of lemmatized words converted to a SQLite db for efficiency into a hashmap for O(1) lemmatization on each keyword.</li>
+                <li><b>Query.java: </b> This class handles all user query functions and attributes. It controls getting keywords from the query,
+                filtering out stopwords, and lemmatizing the word.</li>
+                <li><b>Statements.java: </b> This class stores all of the database operations for easy access to prevent cluttering up the Database.java file.</li>
+           </ul>
+            <h2>Results</h2>
+            <p>Here is a demo of the search engine working:</p>
+            <img src="resources/demo2.gif" alt="search engine demo" width="800" height="400">
+            <h2>Summary</h2>
+            <p>Although the results don't always make the most sense, most of the time they aren't that bad.
+                I think the search engine could be improved by using a more advanced algorithm like <a href="https://en.wikipedia.org/wiki/BERT_(language_model)">BERT</a> or <a href="https://en.wikipedia.org/wiki/Word2vec">Word2Vec</a>. I actually tried 
+                to store word embeddings from OpenAI, but the files were way too large and the searching was way slower than TF-IDF. I think the search engine could also be improved by using a more advanced database like <a href="https://en.wikipedia.org/wiki/Elasticsearch">Elasticsearch</a>.
+                Also, I would eventually like to get this project on the cloud so people can try it out.
+            </p>
+    </body>
+</html>
