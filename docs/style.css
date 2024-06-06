@@ -38,7 +38,8 @@ a {
 }
 
 img {
-    margin: 0;
+    display: block;
+    margin: 0 auto;
     max-height: 526px;
     max-width: 85%;
     height: auto;
@@ -87,6 +88,12 @@ img {
     .body-content {
         width: 80vw;
     }
+    h1 {
+        font-size: 1.6rem;
+    }
+    p {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 320px) {
@@ -94,6 +101,9 @@ img {
         width: 95vw;
     }
     h1 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
+    }
+    p {
+        font-size: 1rem;
     }
 }
